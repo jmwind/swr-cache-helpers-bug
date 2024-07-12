@@ -9,7 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@supabase-cache-helpers/postgrest-swr": "^1.7.5",
+    "@supabase-cache-helpers/postgrest-swr": "1.7.5",
     "@supabase/supabase-js": "^2.44.3",
     "expo": "~51.0.20",
     "expo-status-bar": "~1.12.1",
