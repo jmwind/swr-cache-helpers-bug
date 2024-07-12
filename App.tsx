@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Button, StyleSheet, Text, View } from 'react-native';
 import { Database } from './sbtypes';
 import { useQuery, useUpdateMutation } from '@supabase-cache-helpers/postgrest-swr';
 import { useEffect, useRef, useState } from 'react';
@@ -58,11 +58,13 @@ export default function App() {
       {profiles?.map((profile) => (
         <Text key={profile.id}>{profile.username}</Text>
       ))}
+      {profiles === undefined && <ActivityIndicator size="large" color="#0000ff" />}
       <Text style={styles.title}>Trips</Text>
       {trips?.map((trip) => (
         <Text key={trip.id}>{trip.country_code}</Text>
       ))}
-      <Button title="Refetch" onPress={() => {
+      {trips === undefined && <ActivityIndicator size="large" color="#0000ff" />}
+      <Button title="Mutate" onPress={() => {
         const randomCountryCode = Math.random().toString(36).substring(2, 5).toUpperCase();
         update({id: 1, country_code: randomCountryCode});
       }} />
