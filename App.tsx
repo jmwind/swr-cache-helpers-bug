@@ -12,6 +12,8 @@ const client = createClient<Database>(
 
 export default function App() {
   const renderCount = useRef(0);
+  const profilesUndefinedCount = useRef(0);
+  const tripsUndefinedCount = useRef(0);
   useEffect(() => {
     renderCount.current = renderCount.current + 1;
   });
@@ -39,7 +41,17 @@ export default function App() {
       revalidateTables: [{schema: 'public', table: 'profiles'}, {schema: 'public', table: 'trips'}],
     }
   );
-  console.log('profiles', profiles);  
+  useEffect(() => {
+    if (profiles === undefined) {
+      profilesUndefinedCount.current = profilesUndefinedCount.current + 1;
+    }
+  }, [profiles]);
+
+  useEffect(() => {
+    if (trips === undefined) {
+      tripsUndefinedCount.current = tripsUndefinedCount.current + 1;
+    }
+  }, [trips]);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profiles</Text>
@@ -55,6 +67,8 @@ export default function App() {
         update({id: 1, country_code: randomCountryCode});
       }} />
       <Text>Render Count: {renderCount.current}</Text>
+      <Text>Profiles Undefined Count: {profilesUndefinedCount.current}</Text>
+      <Text>Trips Undefined Count: {tripsUndefinedCount.current}</Text>
       <StatusBar style="auto" />
     </View>
   );
