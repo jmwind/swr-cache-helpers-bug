@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, Session } from '@supabase/supabase-js';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Button, StyleSheet, Text, View } from 'react-native';
 import { Database } from './sbtypes';
@@ -14,10 +14,19 @@ export default function App() {
   const renderCount = useRef(0);
   const profilesUndefinedCount = useRef(0);
   const tripsUndefinedCount = useRef(0);
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    client.auth.onAuthStateChange((event, session) => {
+      console.log('auth state change', event, session?.expires_in, session?.user.email);
+      setSession(session);
+    });    
+  }, []);
+
   useEffect(() => {
     renderCount.current = renderCount.current + 1;
   });
-  const {data: profiles, mutate} = useQuery(
+  const {data: profiles, mutate, error} = useQuery(
     client.from('profiles').select('id, full_name, username').order('id', {ascending: false}),
     {
       revalidateOnFocus: true,
@@ -36,9 +45,9 @@ export default function App() {
   const { trigger: update } = useUpdateMutation(
     client.from('trips'),
     ['id'],
-    'id, country_code',
+    'id',
     {      
-      revalidateTables: [{schema: 'public', table: 'profiles'}, {schema: 'public', table: 'trips'}],
+      revalidateTables: [{schema: 'public', table: 'profiles'}],
     }
   );
   useEffect(() => {
@@ -54,24 +63,36 @@ export default function App() {
   }, [trips]);
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profiles</Text>
+      {error && <Text>Error: {error.message}</Text>}
+      <Text style={styles.title}>Profiles</Text>      
       {profiles?.map((profile) => (
         <Text key={profile.id}>{profile.username}</Text>
       ))}
       {profiles === undefined && <ActivityIndicator size="large" color="#0000ff" />}
       <Text style={styles.title}>Trips</Text>
       {trips?.map((trip) => (
-        <Text key={trip.id}>{trip.country_code}</Text>
+        <Text key={trip.id}>{trip.country_code} - {trip.id}</Text>
       ))}
       {trips === undefined && <ActivityIndicator size="large" color="#0000ff" />}
       <Button title="Mutate" onPress={() => {
-        const randomCountryCode = Math.random().toString(36).substring(2, 5).toUpperCase();
-        update({id: 1, country_code: randomCountryCode});
+        let randomCountryCode = Math.random().toString(36).substring(2, 5).toUpperCase();
+        update({id: 5, country_code: randomCountryCode});
+      }} />
+      <Button title="Signin" onPress={async () => {
+        const {data, error} = await client.auth.signInWithPassword({email: 'admin@demo.com', password: 'demo'}); 
+        if (error) {
+          console.log('error', error);
+        } else {
+          console.log('signed in', data.user.email);
+        }      
+      }} />
+      <Button title="Signout" onPress={() => {
+        client.auth.signOut();
       }} />
       <Text>Render Count: {renderCount.current}</Text>
       <Text>Profiles Undefined Count: {profilesUndefinedCount.current}</Text>
       <Text>Trips Undefined Count: {tripsUndefinedCount.current}</Text>
-      <StatusBar style="auto" />
+      <Text>Session: {session?.user.email}</Text>
     </View>
   );
 }
