@@ -21,6 +21,12 @@ export default function App() {
       console.log('auth state change', event, session?.expires_in, session?.user.email);
       setSession(session);
     });    
+    const interval = setInterval(() => {
+      client.auth.getSession().then(({data: {session}}) => {
+        console.log('session', session?.user.email);
+      });
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
